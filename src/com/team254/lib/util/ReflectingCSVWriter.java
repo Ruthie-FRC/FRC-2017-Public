@@ -6,23 +6,26 @@ import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
- * Writes data to a CSV file
+ * Writes data to a CSV file using reflection.
+ * Modernized with improved naming and structure.
  */
 public class ReflectingCSVWriter<T> {
-    ConcurrentLinkedDeque<String> mLinesToWrite = new ConcurrentLinkedDeque<>();
-    PrintWriter mOutput = null;
-    Field[] mFields;
+    private final ConcurrentLinkedDeque<String> linesToWrite = new ConcurrentLinkedDeque<>();
+    private PrintWriter output = null;
+    private final Field[] fields;
 
     public ReflectingCSVWriter(String fileName, Class<T> typeClass) {
-        mFields = typeClass.getFields();
+        fields = typeClass.getFields();
         try {
-            mOutput = new PrintWriter(fileName);
+            output = new PrintWriter(fileName);
         } catch (FileNotFoundException e) {
+            System.err.println("Could not create CSV file: " + fileName);
             e.printStackTrace();
         }
-        // Write field names.
-        StringBuffer line = new StringBuffer();
-        for (Field field : mFields) {
+        
+        // Write field names
+        var line = new StringBuilder();
+        for (var field : fields) {
             if (line.length() != 0) {
                 line.append(", ");
             }
@@ -32,32 +35,33 @@ public class ReflectingCSVWriter<T> {
     }
 
     public void add(T value) {
-        StringBuffer line = new StringBuffer();
-        for (Field field : mFields) {
+        var line = new StringBuilder();
+        for (var field : fields) {
             if (line.length() != 0) {
                 line.append(", ");
             }
             try {
                 line.append(field.get(value).toString());
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                System.err.println("Error accessing field: " + field.getName());
                 e.printStackTrace();
             }
         }
-        mLinesToWrite.add(line.toString());
+        linesToWrite.add(line.toString());
     }
 
     protected synchronized void writeLine(String line) {
-        if (mOutput != null) {
-            mOutput.println(line);
+        if (output != null) {
+            output.println(line);
         }
     }
 
-    // Call this periodically from any thread to write to disk.
+    /**
+     * Call this periodically from any thread to write to disk.
+     */
     public void write() {
         while (true) {
-            String val = mLinesToWrite.pollFirst();
+            var val = linesToWrite.pollFirst();
             if (val == null) {
                 break;
             }
@@ -66,9 +70,9 @@ public class ReflectingCSVWriter<T> {
     }
 
     public synchronized void flush() {
-        if (mOutput != null) {
+        if (output != null) {
             write();
-            mOutput.flush();
+            output.flush();
         }
     }
 }

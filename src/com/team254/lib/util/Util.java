@@ -3,11 +3,14 @@ package com.team254.lib.util;
 import java.util.List;
 
 /**
- * Contains basic functions that are used often.
+ * Contains basic utility functions that are used often.
+ * Modernized with improved structure.
  */
-public class Util {
+public final class Util {
+    
     /** Prevent this class from being instantiated. */
     private Util() {
+        throw new AssertionError("Utility class should not be instantiated");
     }
 
     /**
@@ -22,7 +25,7 @@ public class Util {
     }
 
     public static String joinStrings(String delim, List<?> strings) {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         for (int i = 0; i < strings.size(); ++i) {
             sb.append(strings.get(i).toString());
             if (i < strings.size() - 1) {
@@ -37,10 +40,11 @@ public class Util {
     }
 
     public static boolean allCloseTo(List<Double> list, double value, double epsilon) {
-        boolean result = true;
-        for (Double value_in : list) {
-            result &= epsilonEquals(value_in, value, epsilon);
+        for (var valueIn : list) {
+            if (!epsilonEquals(valueIn, value, epsilon)) {
+                return false;
+            }
         }
-        return result;
+        return true;
     }
 }

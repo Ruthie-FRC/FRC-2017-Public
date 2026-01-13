@@ -69,7 +69,7 @@ public class CANTalonFactory {
     }
 
     public static CANTalon createTalon(int id, Configuration config) {
-        CANTalon talon = new LazyCANTalon(id, config.CONTROL_FRAME_PERIOD_MS);
+        CANTalon talon = new CANTalon(id);
         talon.changeControlMode(CANTalon.TalonControlMode.Voltage);
         talon.changeMotionControlFramePeriod(config.MOTION_CONTROL_FRAME_PERIOD_MS);
         talon.clearIAccum();

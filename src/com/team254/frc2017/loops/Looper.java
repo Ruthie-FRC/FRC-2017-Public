@@ -5,86 +5,87 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.team254.frc2017.Constants;
-import com.team254.lib.util.CrashTrackingRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This code runs all of the robot's loops. Loop objects are stored in a List object. They are started when the robot
- * powers up and stopped after the match.
+ * This code runs all of the robot's loops. Loop objects are stored in a List object. 
+ * They are started when the robot powers up and stopped after the match.
+ * Modernized with improved naming and structure.
  */
 public class Looper {
-    public final double kPeriod = Constants.kLooperDt;
+    public final double period = Constants.kLooperDt;
 
-    private boolean running_;
+    private boolean running;
+    private final Notifier notifier;
+    private final List<Loop> loops;
+    private final Object taskRunningLock = new Object();
+    private double timestamp = 0;
+    private double dt = 0;
 
-    private final Notifier notifier_;
-    private final List<Loop> loops_;
-    private final Object taskRunningLock_ = new Object();
-    private double timestamp_ = 0;
-    private double dt_ = 0;
+    private final Runnable runnable = () -> {
+        synchronized (taskRunningLock) {
+            if (running) {
+                var now = Timer.getFPGATimestamp();
 
-    private final CrashTrackingRunnable runnable_ = new CrashTrackingRunnable() {
-        @Override
-        public void runCrashTracked() {
-            synchronized (taskRunningLock_) {
-                if (running_) {
-                    double now = Timer.getFPGATimestamp();
-
-                    for (Loop loop : loops_) {
+                for (var loop : loops) {
+                    try {
                         loop.onLoop(now);
+                    } catch (Exception e) {
+                        System.err.println("Exception in loop: " + loop.getClass().getSimpleName());
+                        e.printStackTrace();
                     }
-
-                    dt_ = now - timestamp_;
-                    timestamp_ = now;
                 }
+
+                dt = now - timestamp;
+                timestamp = now;
             }
         }
     };
 
     public Looper() {
-        notifier_ = new Notifier(runnable_);
-        running_ = false;
-        loops_ = new ArrayList<>();
+        notifier = new Notifier(runnable);
+        running = false;
+        loops = new ArrayList<>();
     }
 
     public synchronized void register(Loop loop) {
-        synchronized (taskRunningLock_) {
-            loops_.add(loop);
+        synchronized (taskRunningLock) {
+            loops.add(loop);
         }
     }
 
     public synchronized void start() {
-        if (!running_) {
+        if (!running) {
             System.out.println("Starting loops");
-            synchronized (taskRunningLock_) {
-                timestamp_ = Timer.getFPGATimestamp();
-                for (Loop loop : loops_) {
-                    loop.onStart(timestamp_);
+            synchronized (taskRunningLock) {
+                timestamp = Timer.getFPGATimestamp();
+                for (var loop : loops) {
+                    loop.onStart(timestamp);
                 }
-                running_ = true;
+                running = true;
             }
-            notifier_.startPeriodic(kPeriod);
+            notifier.startPeriodic(period);
         }
     }
 
     public synchronized void stop() {
-        if (running_) {
+        if (running) {
             System.out.println("Stopping loops");
-            notifier_.stop();
-            synchronized (taskRunningLock_) {
-                running_ = false;
-                timestamp_ = Timer.getFPGATimestamp();
-                for (Loop loop : loops_) {
+            notifier.stop();
+            synchronized (taskRunningLock) {
+                running = false;
+                timestamp = Timer.getFPGATimestamp();
+                for (var loop : loops) {
                     System.out.println("Stopping " + loop);
-                    loop.onStop(timestamp_);
+                    loop.onStop(timestamp);
                 }
             }
         }
     }
 
     public void outputToSmartDashboard() {
-        SmartDashboard.putNumber("looper_dt", dt_);
+        SmartDashboard.putNumber("looper_dt", dt);
     }
 }

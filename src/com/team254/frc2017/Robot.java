@@ -1,23 +1,140 @@
 package com.team254.frc2017;
 
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import com.team254.frc2017.auto.AutoModeExecuter;
 import com.team254.frc2017.loops.Looper;
-import com.team254.frc2017.loops.RobotStateEstimator;
-import com.team254.frc2017.loops.VisionProcessor;
-import com.team254.frc2017.paths.profiles.PathAdapter;
-import com.team254.frc2017.subsystems.*;
-import com.team254.frc2017.subsystems.MotorGearGrabber.WantedState;
-import com.team254.frc2017.vision.VisionServer;
-import com.team254.lib.util.*;
-import com.team254.lib.util.math.RigidTransform2d;
+import com.team254.frc2017.subsystems.Shooter;
 
-import java.util.Arrays;
-import java.util.Map;
+/**
+ * The main robot class for a shooter-only robot.
+ * Modernized to use only shooter subsystem with modern Java features.
+ * 
+ * This is a minimal robot implementation focused solely on the shooter mechanism.
+ * All other subsystems (drive, intake, hopper, etc.) have been removed.
+ */
+public class Robot extends IterativeRobot {
+    
+    // Shooter subsystem
+    private final Shooter shooter = Shooter.getInstance();
+    
+    // Looper for periodic tasks
+    private final Looper enabledLooper = new Looper();
+    
+    public Robot() {
+        System.out.println("Robot constructed");
+    }
+
+    /**
+     * This function is run when the robot is first started up and should be used for any initialization code.
+     */
+    @Override
+    public void robotInit() {
+        try {
+            System.out.println("Robot initializing...");
+            
+            // Register shooter with the looper
+            shooter.registerEnabledLoops(enabledLooper);
+            
+            System.out.println("Robot initialization complete");
+            
+        } catch (Throwable t) {
+            System.err.println("Exception during robot initialization:");
+            t.printStackTrace();
+            throw t;
+        }
+    }
+
+    /**
+     * Initializes the robot for the beginning of autonomous mode.
+     */
+    @Override
+    public void autonomousInit() {
+        try {
+            System.out.println("Auto start timestamp: " + Timer.getFPGATimestamp());
+            shooter.zeroSensors();
+            enabledLooper.start();
+        } catch (Throwable t) {
+            System.err.println("Exception during autonomous init:");
+            t.printStackTrace();
+            throw t;
+        }
+    }
+
+    /**
+     * This function is called periodically during autonomous.
+     */
+    @Override
+    public void autonomousPeriodic() {
+        allPeriodic();
+    }
+
+    /**
+     * Initializes the robot for the beginning of teleop mode.
+     */
+    @Override
+    public void teleopInit() {
+        try {
+            System.out.println("Teleop start timestamp: " + Timer.getFPGATimestamp());
+            shooter.zeroSensors();
+            enabledLooper.start();
+        } catch (Throwable t) {
+            System.err.println("Exception during teleop init:");
+            t.printStackTrace();
+            throw t;
+        }
+    }
+
+    /**
+     * This function is called periodically during teleop.
+     */
+    @Override
+    public void teleopPeriodic() {
+        allPeriodic();
+    }
+
+    /**
+     * Called when the robot is disabled.
+     */
+    @Override
+    public void disabledInit() {
+        try {
+            System.out.println("Disabled timestamp: " + Timer.getFPGATimestamp());
+            enabledLooper.stop();
+            shooter.stop();
+        } catch (Throwable t) {
+            System.err.println("Exception during disabled init:");
+            t.printStackTrace();
+        }
+    }
+
+    /**
+     * This function is called periodically when disabled.
+     */
+    @Override
+    public void disabledPeriodic() {
+        allPeriodic();
+    }
+
+    /**
+     * This function is called periodically during test mode.
+     */
+    @Override
+    public void testPeriodic() {
+        // Test the shooter system
+        shooter.checkSystem();
+    }
+
+    /**
+     * Common periodic tasks run in all modes.
+     */
+    public void allPeriodic() {
+        shooter.outputToSmartDashboard();
+        shooter.writeToLog();
+        enabledLooper.outputToSmartDashboard();
+    }
+}
 
 /**
  * The main robot class, which instantiates all robot parts and helper classes and initializes all loops. Some classes
