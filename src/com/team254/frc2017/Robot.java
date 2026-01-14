@@ -1,6 +1,6 @@
 package com.team254.frc2017;
 
-import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -9,12 +9,12 @@ import com.team254.frc2017.subsystems.Shooter;
 
 /**
  * The main robot class for a shooter-only robot.
- * Modernized to use only shooter subsystem with modern Java features.
+ * Updated to use WPILib 2026 TimedRobot with modern Java features.
  * 
  * This is a minimal robot implementation focused solely on the shooter mechanism.
  * All other subsystems (drive, intake, hopper, etc.) have been removed.
  */
-public class Robot extends IterativeRobot {
+public class Robot extends TimedRobot {
     
     // Shooter subsystem
     private final Shooter shooter = Shooter.getInstance();
@@ -23,6 +23,7 @@ public class Robot extends IterativeRobot {
     private final Looper enabledLooper = new Looper();
     
     public Robot() {
+        super();
         System.out.println("Robot constructed");
     }
 
