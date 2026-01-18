@@ -1,23 +1,92 @@
 package com.team254.frc2017;
 
-import edu.wpi.first.wpilibj.Solenoid;
-
 import com.team254.lib.util.ConstantsBase;
-import com.team254.lib.util.InterpolatingDouble;
-import com.team254.lib.util.InterpolatingTreeMap;
-import com.team254.lib.util.math.PolynomialRegression;
-
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
-import java.util.HashMap;
 
 /**
- * A list of constants used by the rest of the robot code. This include physics constants as well as constants
- * determined through calibrations.
+ * A list of constants used by the shooter subsystem.
+ * Modernized to include only shooter-related constants.
  */
 public class Constants extends ConstantsBase {
-    public static double kLooperDt = 0.005;
+    public static final double kLooperDt = 0.005;
+
+    /* SHOOTER TUNING PARAMETERS */
+    public static boolean kIsShooterTuning = false;
+    public static double kShooterTuningRpmFloor = 2900;
+    public static double kShooterTuningRpmCeiling = 3500;
+    public static double kShooterTuningRpmStep = 50;
+    public static double kShooterTuningRpm = 3500.0;
+
+    /* SHOOTER CONTROL LOOP GAINS */
+    public static double kShooterTalonKP = 0.16;
+    public static double kShooterTalonKI = 0.00008;
+    public static double kShooterTalonKD = 0.0;
+    public static double kShooterTalonKF = 0.035;
+    public static double kShooterRampRate = 60.0;
+
+    public static double kShooterTalonHoldKP = 0.0;
+    public static double kShooterTalonHoldKI = 0.0;
+    public static double kShooterTalonHoldKD = 0.0;
+    public static double kShooterHoldRampRate = 720.0;
+
+    public static int kShooterTalonIZone = 1000; // 73 rpm
+    public static int kShooterOpenLoopCurrentLimit = 35;
+
+    public static double kShooterSetpointDeadbandRpm = 1.0;
+
+    /* SHOOTER STATE MACHINE PARAMETERS */
+    // Used to determine when to switch to hold profile
+    public static double kShooterMinTrackStability = 0.25;
+    public static double kShooterStartOnTargetRpm = 50.0;
+    public static double kShooterStopOnTargetRpm = 150.0;
+    public static int kShooterKfBufferSize = 20;
+    public static int kShooterMinOnTargetSamples = 20; // Should be <= kShooterKfBufferSize
+
+    public static int kShooterJamBufferSize = 30;
+    public static double kShooterDisturbanceThreshold = 25;
+    public static double kShooterJamTimeout = 1.5; // In seconds
+    public static double kShooterUnjamDuration = 0.5; // In seconds
+    public static double kShooterMinShootingTime = 1.0; // In seconds
+    public static double kShooterSpinDownTime = 0.25;
+
+    /* SHOOTER HARDWARE IDS */
+    // Talon CAN IDs
+    public static final int kRightShooterMasterId = 2;
+    public static final int kRightShooterSlaveId = 1;
+    public static final int kLeftShooterSlave1Id = 13;
+    public static final int kLeftShooterSlave2Id = 14;
+
+    /* SHOOTER AIMING PARAMETERS */
+    public static double kDefaultShootingDistanceInches = 95.8;
+    public static double kDefaultShootingRPM = 2950.0;
+
+    public static double kShooterOptimalRange = 100.0;
+    public static double kShooterOptimalRangeFloor = 95.0;
+    public static double kShooterOptimalRangeCeiling = 105.0;
+
+    public static double kShooterAbsoluteRangeFloor = 90.0;
+    public static double kShooterAbsoluteRangeCeiling = 130.0;
+
+    /**
+     * Distance to RPM mapping for auto-aiming.
+     * Format: { distance_in_inches, rpm }
+     */
+    public static final double[][] kFlywheelDistanceRpmValues = {
+        { 90.0, 2890.0 },
+        { 95.0, 2940.0 },
+        { 100.0, 2990.0 },
+        { 105.0, 3025.0 },
+        { 110.0, 3075.0 },
+        { 115.0, 3125.0 },
+        { 120.0, 3175.0 },
+        { 125.0, 3225.0 },
+        { 130.0, 3275.0 },
+    };
+
+    @Override
+    public String getFileLocation() {
+        return "~/constants.txt";
+    }
+}
 
     // Target parameters
     // Source of current values: https://firstfrc.blob.core.windows.net/frc2017/Manual/2017FRCGameSeasonManual.pdf

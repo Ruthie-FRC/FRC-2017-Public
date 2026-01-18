@@ -4,53 +4,56 @@ import java.util.LinkedList;
 
 /**
  * Implements a simple circular buffer.
+ * Modernized with improved naming and structure.
  */
 public class CircularBuffer {
-    int mWindowSize;
-    LinkedList<Double> mSamples;
-    double mSum;
+    private final int windowSize;
+    private final LinkedList<Double> samples;
+    private double sum;
 
-    public CircularBuffer(int window_size) {
-        mWindowSize = window_size;
-        mSamples = new LinkedList<Double>();
-        mSum = 0.0;
+    public CircularBuffer(int windowSize) {
+        this.windowSize = windowSize;
+        this.samples = new LinkedList<>();
+        this.sum = 0.0;
     }
 
     public void clear() {
-        mSamples.clear();
-        mSum = 0.0;
+        samples.clear();
+        sum = 0.0;
     }
 
     public double getAverage() {
-        if (mSamples.isEmpty())
+        if (samples.isEmpty()) {
             return 0.0;
-        return mSum / mSamples.size();
+        }
+        return sum / samples.size();
     }
 
     public void recomputeAverage() {
         // Reset any accumulation drift.
-        mSum = 0.0;
-        if (mSamples.isEmpty())
+        sum = 0.0;
+        if (samples.isEmpty()) {
             return;
-        for (Double val : mSamples) {
-            mSum += val;
         }
-        mSum /= mWindowSize;
+        for (var val : samples) {
+            sum += val;
+        }
+        sum /= windowSize;
     }
 
     public void addValue(double val) {
-        mSamples.addLast(val);
-        mSum += val;
-        if (mSamples.size() > mWindowSize) {
-            mSum -= mSamples.removeFirst();
+        samples.addLast(val);
+        sum += val;
+        if (samples.size() > windowSize) {
+            sum -= samples.removeFirst();
         }
     }
 
     public int getNumValues() {
-        return mSamples.size();
+        return samples.size();
     }
 
     public boolean isFull() {
-        return mWindowSize == mSamples.size();
+        return windowSize == samples.size();
     }
 }
